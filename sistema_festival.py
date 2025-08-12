@@ -1,6 +1,11 @@
 from abc import ABC, abstractmethod
 import uuid
 from datetime import date
+from extra_minxin import Relatorio,excluir_arquivo
+
+#const
+ARQUIVO_RELATORIO = './relatorio.txt'
+excluir_arquivo(ARQUIVO_RELATORIO)
 
 # -------------------------------------------------
 # 1) Interface                                    🡇
@@ -58,15 +63,43 @@ class Ingresso:
 # -------------------------------------------------
 # 5) Cliente                                      🡇
 # -------------------------------------------------
-class Cliente(Pessoa):
+class Cliente(Pessoa,):
+    __clientes = []
+    
     """Herda de Pessoa e possui ingressos."""
     def __init__(self, nome: str, cpf: str, email: str):
         super().__init__(nome, cpf)
         self._email = email
         self._ingressos = []
+        self.__clientes.append(self)
         
     def comprar_ingresso(self, ingresso: Ingresso):
         self._ingressos.append(ingresso)
+        
+    def gerar_relatorio_ingressos(self):
+        ingressos_lista = []
+        linha_relatorio = f'Clienete : {self.nome}, ingressos :'
+        for ingresso in self._ingressos: ingressos_lista.append(ingresso.codigo)
+        if ingressos_lista:
+            for ingresso in ingressos_lista: linha_relatorio+= f' {ingresso}'
+        else:
+            linha_relatorio += ' Nenhum ingresso comprado'
+            
+        return linha_relatorio
+
+
+    @classmethod
+    def gerar_relatorio_ingresos_geral(cls):
+        """gera o relatorio de ingressos de todos os clientes"""
+        conteudo = str()
+        for objeto in cls.__clientes:
+            conteudo+=f'{objeto.gerar_relatorio_ingressos()}\n'
+        
+        editor_arquivo = Relatorio(ARQUIVO_RELATORIO)
+        
+        editor_arquivo.rescrever_arquivo(conteudo)
+        
+
     def listar_ingressos(self):
         for ing in self._ingressos:
             print(ing)
@@ -220,9 +253,13 @@ class EmpresaEventos:
 # 10) Auditor (Identificável + Logável)           🡇
 # -------------------------------------------------
 class Auditor(IdentificavelMixin, Logavel, AuditavelMixin):
+    __auditores = []
+    
     def __init__(self, nome):
         super().__init__()
         self.nome = nome
+        self.__auditores.append(self)
+        self.festivais_analisados = dict()
 
     def logar_entrada(self):
         self.log_evento(f"Auditor {self.nome} entrou no sistema.")
@@ -247,6 +284,27 @@ class Auditor(IdentificavelMixin, Logavel, AuditavelMixin):
             print(f"Festival '{fest.nome}' está em conformidade.")
         else:
             print(f"Festival '{fest.nome}' apresenta não conformidades.")    
+            
+        self.festivais_analisados[fest.nome] = conformidade
+        
+    @classmethod
+    def gerar_relatorio_geral(cls):
+        conteudo = str()
+        for objeto in cls.__auditores:
+            msg = f"Auditor : {objeto.nome} , analises : "
+            for key,value in objeto.festivais_analisados.items():
+                palco = key
+                if value:
+                    msg += f' "{palco}" em conformidade'
+                else:
+                    msg += f' {palco} não estava em conformidade'
+            conteudo += f'{msg} \n'
+            
+        editor_arquivo = Relatorio(ARQUIVO_RELATORIO)
+        editor_arquivo.rescrever_arquivo(conteudo)
+                    
+        
+        
     def __str__(self):
         return f"Auditor {self.nome} (ID: {self.id})"   
          
@@ -344,6 +402,9 @@ if __name__ == "__main__":
     # --- listar festivais na empresa ---
     print("\n--- Festivais da Empresa ---")
     empresa.listar_festivais()
+    
+    Cliente.gerar_relatorio_ingresos_geral()
+    Auditor.gerar_relatorio_geral()
 
     """
     TODO:
