@@ -97,27 +97,28 @@ class Funcionario(Pessoa, IdentificavelMixin, Logavel, AuditavelMixin):
 # -------------------------------------------------
 # 7) Palco (objeto de composição)                 🡇
 # -------------------------------------------------
-class Palco:
-    """Objeto que compõe o Festival."""
-    def __init__(self, nome: str, capacidade: int):
-        self.nome = nome
-        self.capacidade = capacidade
-    
-    def resumo(self):
-        return f"Palco {self.nome} - cap {self.capacidade} pessoas"
+
         
 # -------------------------------------------------
 # 8) Festival (composição com Palco)              🡇
 # -------------------------------------------------
 class Festival():
-    def __init__(self, nome:str, data:date, local:str, palco: Palco):
+    class Palco:
+        """Objeto que compõe o Festival."""
+        def __init__(self, nome: str, capacidade: int):
+            self.nome = nome
+            self.capacidade = capacidade
+        
+        def resumo(self):
+            return f"Palco {self.nome} - cap {self.capacidade} pessoas"
+    def __init__(self, nome:str, data:date, local:str, nomePalco: str, capacidadePalco: str):
         self.nome = nome
         self.data = data
         self.local = local
         self.clientes = []
         self.equipe = []
         self.ingressos = []
-        self.palco = palco
+        self.palco = self.Palco(nomePalco, capacidadePalco)
 
     def vender_ingresso(self, cliente, ingresso):
         if len(self.ingressos) >= self.palco.capacidade:
@@ -266,83 +267,74 @@ class Auditor(IdentificavelMixin, Logavel, AuditavelMixin):
 # -------------------------------------------------
 if __name__ == "__main__": 
 
-    empresa = EmpresaEventos("Top Eventos")
+     # Criar empresa
+    empresa = EmpresaEventos("Mega Eventos LTDA")
 
-    # --- palcos ---
-    palco_grande = Palco("Principal", capacidade=3)   # capacidade pequena para testar excesso
-    palco_pequeno = Palco("Alternativo", capacidade=100)
+    # Criar dois festivais
+    fest1 = Festival(
+        nome="Rock in Python",
+        data=date(2025, 12, 5),
+        local="São Paulo",
+        nomePalco="Palco Principal",
+        capacidadePalco=3
+    )
 
-    # --- festivais ---
-    fest1 = Festival("MiniFest", date(2025, 9, 1), "Parque A", palco_grande)
-    # Observação: a classe Festival não define self.palco no __init__ no seu código original,
-    # então garantimos o atributo aqui:
-    fest1.palco = palco_grande
+    fest2 = Festival(
+        nome="Jazz no Terminal",
+        data=date(2025, 11, 20),
+        local="Rio de Janeiro",
+        nomePalco="Jazz Stage",
+        capacidadePalco=2
+    )
 
-    fest2 = Festival("MegaFest", date(2025, 10, 5), "Estádio B", palco_pequeno)
-    fest2.palco = palco_pequeno
-
+    # Adicionar festivais à empresa
     empresa.adicionar_festival(fest1)
     empresa.adicionar_festival(fest2)
 
-    # --- clientes ---
-    c1 = Cliente("Ana", "11111111111", "ana@email.com")
-    c2 = Cliente("Bruno", "22222222222", "bruno@email.com")
-    c3 = Cliente("Carla", "33333333333", "carla@email.com")
-    c4 = Cliente("Daniel", "44444444444", "daniel@email.com")
+    # Criar clientes
+    c1 = Cliente("Ana", "111.111.111-11", "ana@email.com")
+    c2 = Cliente("Bruno", "222.222.222-22", "bruno@email.com")
+    c3 = Cliente("Carlos", "333.333.333-33", "carlos@email.com")
 
-    # --- ingressos ---
-    i1 = Ingresso("I001", "Pista", 120.0)
-    i2 = Ingresso("I002", "VIP", 300.0)
-    i3 = Ingresso("I003", "Pista", 120.0)
-    i4 = Ingresso("I004", "Pista", 120.0)
+    # Criar ingressos
+    ing1 = Ingresso("001", "Pista", 100.0)
+    ing2 = Ingresso("002", "VIP", 200.0)
+    ing3 = Ingresso("003", "Backstage", 500.0)
 
-    # --- vender ingressos para fest1 (palco_grande cap=3) ---
-    print("\n--- Vendas MiniFest ---")
-    fest1.vender_ingresso(c1, i1)   # venda ok
-    fest1.vender_ingresso(c2, i2)   # venda ok
-    fest1.vender_ingresso(c3, i3)   # venda ok (alcança capacidade)
-    # testar capacidade excedida
-    fest1.vender_ingresso(c4, i4)   # deve imprimir "Ingressos esgotados!"
+    # Criar funcionários
+    f1 = Funcionario("Daniel", "444.444.444-44", "Segurança", "S001")
+    f2 = Funcionario("Eduarda", "555.555.555-55", "Produtora", "P002")
 
-    # tentar vender ingresso duplicado para c1
-    fest1.vender_ingresso(c1, i2)   # deve dizer que cliente já possui ingresso
-
-    # --- vender ingressos para fest2 ---
-    print("\n--- Vendas MegaFest ---")
-    fest2.vender_ingresso(c4, i4)   # venda ok
-
-    # --- adicionar funcionários ---
-    f1 = Funcionario("Felipe", "55555555555", "Segurança", "REG001")
-    f2 = Funcionario("Mariana", "66666666666", "Produção", "REG002")
-
+    # Adicionar funcionários aos festivais
     fest1.adicionar_funcionario(f1)
+    fest1.adicionar_funcionario(f2)
     fest2.adicionar_funcionario(f2)
 
-    # --- listar participantes e ingressos ---
-    print("\n--- Dados MiniFest ---")
+    # Vender ingressos
+    fest1.vender_ingresso(c1, ing1)
+    fest1.vender_ingresso(c2, ing2)
+    fest1.vender_ingresso(c3, ing3)
+
+    # Tentativa de exceder capacidade
+    fest1.vender_ingresso(c1, Ingresso("004", "Extra", 50.0))
+
+    # Listar participantes e ingressos
     fest1.listar_clientes()
     fest1.listar_equipe()
     fest1.listar_ingressos()
 
-    print("\n--- Dados MegaFest ---")
-    fest2.listar_clientes()
-    fest2.listar_equipe()
-    fest2.listar_ingressos()
+    # Criar auditor
+    auditor = Auditor("Fernanda")
+    auditor.logar_entrada()
 
-    # --- auditor ---
-    auditor = Auditor("Lucas")
-    # opcional: não chamamos auditor.logar_entrada() porque a classe Auditor, como está,
-    # chama log_evento (que pertence a AuditavelMixin) e AuditavelMixin não é herdado por Auditor
-    # no seu código atual — para evitar AttributeError, pulamos logar_entrada aqui.
-
-    print("\n--- Auditoria MiniFest ---")
+    # Auditar festivais
+    print("\nAuditoria Festival 1:")
     auditor.auditar_festival(fest1)
 
-    print("\n--- Auditoria MegaFest ---")
+    print("\nAuditoria Festival 2:")
     auditor.auditar_festival(fest2)
 
-    # --- listar festivais na empresa ---
-    print("\n--- Festivais da Empresa ---")
+    # Listar festivais da empresa
     empresa.listar_festivais()
 
     """
