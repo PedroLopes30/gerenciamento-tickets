@@ -272,18 +272,18 @@ if __name__ == "__main__":
 
     # Criar dois festivais
     fest1 = Festival(
-        nome="Rock in Python",
+        nome="Mossoró Cidade Junina",
         data=date(2025, 12, 5),
-        local="São Paulo",
+        local="Mossoró",
         nomePalco="Palco Principal",
         capacidadePalco=3
     )
 
     fest2 = Festival(
-        nome="Jazz no Terminal",
+        nome="Finecap",
         data=date(2025, 11, 20),
-        local="Rio de Janeiro",
-        nomePalco="Jazz Stage",
+        local="Pau dos Ferros",
+        nomePalco="Palco da Praça",
         capacidadePalco=2
     )
 
